@@ -1,12 +1,12 @@
 import React from 'react';
+import './FaceRecognition.css';
 
 class FaceRecognition extends React.Component {
   render() {
+    const {box} = this.props;
     return (
-      <div className='center ma'>
-        <div className='absolute mt2'>
-          <img src={this.props.imageUrl} alt='' width='500px' height='auto'/>
-        </div>
+      <div className='bounding-box'
+        style={{top: box.topRow, right: box.rightCol, bottom: box.bottomRow, left: box.leftCol}}>
       </div>
     );
   }
