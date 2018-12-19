@@ -6,7 +6,7 @@ import Signin from './components/Signin/Signin';
 import Register from './components/Register/Register';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
-import FaceRecognition from './components/FaceRecognition/FaceRecognition';
+import FaceRecognitionList from './components/FaceRecognitionList/FaceRecognitionList';
 import Rank from './components/Rank/Rank';
 import './App.css';
 
@@ -35,28 +35,32 @@ class App extends Component {
     this.state = {
       input: '',
       imageUrl: '',
-      box: {},
+      boxArr: [],
       route: 'signin',
       isSignedIn: false
     };
   }
 
   calculateFaceLocation = (data) => {
-    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const clarifaiFaceArr = data.outputs[0].data.regions;
     const image = document.getElementById('inputimage');
     const width = Number(image.width);
     const height = Number(image.height);
-    return {
-      leftCol: clarifaiFace.left_col * width,
-      topRow: clarifaiFace.top_row * height,
-      rightCol: width - (clarifaiFace.right_col * width),
-      bottomRow: height - (clarifaiFace.bottom_row * height)
-    }
-
+    let boxArr = [];
+    clarifaiFaceArr.forEach((item) => {
+      const clarifaiFace = item.region_info.bounding_box;
+      boxArr.push({
+        leftCol: clarifaiFace.left_col * width,
+        topRow: clarifaiFace.top_row * height,
+        rightCol: width - (clarifaiFace.right_col * width),
+        bottomRow: height - (clarifaiFace.bottom_row * height)
+      });
+    })
+    return boxArr
   }
 
-  setFaceBox = box => {
-    this.setState({box: box});
+  setFaceBoxArr = boxArr => {
+    this.setState({boxArr: boxArr});
   }
 
   onInputChange = e => {
@@ -66,7 +70,7 @@ class App extends Component {
   onButtonSubmit = () => {
     this.setState({imageUrl: this.state.input});
     app.models.predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
-    .then(response => this.setFaceBox(this.calculateFaceLocation(response)))
+    .then(response => this.setFaceBoxArr(this.calculateFaceLocation(response)))
     .catch(err => console.log(err));
   }
 
@@ -80,7 +84,7 @@ class App extends Component {
   }
 
   render() {
-    const { isSignedIn, imageUrl, route, box } = this.state;
+    const { isSignedIn, imageUrl, route, boxArr } = this.state;
     return (
       <div className="App">
         <Particles className='particles' params={particlesOptions} />
@@ -93,7 +97,7 @@ class App extends Component {
                 onInputChange={this.onInputChange}
                 onButtonSubmit={this.onButtonSubmit}
               />
-              <FaceRecognition box={box} imageUrl={imageUrl}/>
+              <FaceRecognitionList boxArr={boxArr} imageUrl={imageUrl}/>
             </div>
           : (
               route === 'signin'
